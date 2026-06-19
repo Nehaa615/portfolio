@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portfolio — Your Name</title>
+
+    <!-- ── Google Fonts ── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <style>
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  CSS VARIABLES — single source of truth for colours  ║
+           ╚══════════════════════════════════════════════════════╝ */
+        :root {
+            /* ── Page & Nav ── */
+            --bg:           #0F172A;
+            --nav-text:     #9CA3AF;
+            --nav-hover:    #d1d5db;
+            --nav-active:   #ffffff;
+            --cursor-clr:   #d1d5db;
+
+            /* ── PCB / LED ── */
+            --pcb:          #fb923c;
+            --led-glow:     #Fb923c;
+
+            /* ── Code syntax — Tokyo Night theme ── */
+            --kw:           #aa7cff;               /* keywords    */
+            --str:          #C0CAF5;               /* strings     */
+            --num:          #FF9E64;               /* numbers     */
+            --fn:           #7AA2F7;               /* functions   */
+            --br:           #565F89;               /* brackets    */
+            --prop:         #ffffff;               /* properties  */
+            --cm:           rgb(180, 236, 120);  /* comments    */
+            --code-fg:      #353c5e;               /* base text   */
+            --ln-clr:       #3B4261;               /* line nums   */
+
+            /* ── Typography ── */
+            --heading:      #f1f3f5;
+            --body-clr:     #f1f3f5;
+
+            /* ── Layout ── */
+            --pcb-x:   200px;   /* PCB track distance from page-wrapper left */
+            --cnt-x:   240px;   /* content starts this far from left         */
+        }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  RESET & BASE                                        ║
+           ╚══════════════════════════════════════════════════════╝ */
+        *, *::before, *::after {
+            margin: 0; padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--body-clr);
+            overflow-x: hidden;
+        }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  CUSTOM CURSOR                                       ║
+           ╚══════════════════════════════════════════════════════╝ */
+        #cursor {
+            position: fixed;
+            width: 10px; height: 10px;
+            border: 2px solid var(--cursor-clr);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: left 0.04s linear, top 0.04s linear;
+        }
+
+        /* Ripple ring spawned on each click */
+        .cursor-ripple {
+            position: fixed;
+            border-radius: 50%;
+            border: 1.5px solid var(--cursor-clr);
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%) scale(0);
+            animation: ripple-out 0.65s ease-out forwards;
+        }
+
+        @keyframes ripple-out {
+            0%   { transform: translate(-50%,-50%) scale(0);   opacity: 0.85; }
+            100% { transform: translate(-50%,-50%) scale(4.5); opacity: 0;    }
+        }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  NAVIGATION BAR                                      ║
+           ╚══════════════════════════════════════════════════════╝ */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 600;
+            display: flex;
+            justify-content: center;
+            gap: 52px;
+            padding: 20px 0;
+            background:#0F172A;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid #0F172A;
+        }
+
+        .nav-link {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--nav-text);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+            position: relative;
+            transition: color 0.2s ease;
+        }
+
+        /* Hover underline sweep */
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -3px; left: 0;
+            width: 0; height: 1.5px;
+            background: var(--nav-hover);
+            transition: width 0.25s ease;
+        }
+
+        .nav-link:hover              { color: var(--nav-hover); }
+        .nav-link:hover::after       { width: 100%; }
+
+        /* Active = white + bold + underline */
+        .nav-link.active             { font-weight: 700; color: var(--nav-active); }
+        .nav-link.active::after      { width: 100%; background: var(--nav-active); }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  PAGE LAYOUT                                         ║
+           ╚══════════════════════════════════════════════════════╝ */
+        main { padding-top: 72px; }
+
+        .page-wrapper {
+            position: relative;
+            padding-right: 80px;
+        }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  PCB VERTICAL TRACK                                  ║
+           ╚══════════════════════════════════════════════════════╝ */
+        #pcb-track {
+            position: absolute;
+            left: var(--pcb-x);
+            top: 0; bottom: 0;
+            width: 2px;
+            background: var(--pcb);
+            z-index: 10;
+        }
+
+        /* Hollow LED bullet — unlit state */
+        .led-dot {
+            position: absolute;
+            left: -6px;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--pcb);
+            background: transparent;
+            transition: background 0.35s ease, box-shadow 0.35s ease;
+            z-index: 12;
+        }
+
+        /* LED glow — active section */
+        .led-dot.lit {
+            background: var(--led-glow);
+            box-shadow:
+                0 0 5px  var(--led-glow),
+                0 0 12px var(--led-glow),
+                0 0 28px rgba(215, 203, 188, 0.65),
+                0 0 50px rgba(255, 209, 102, 0.30);
+        }
+
+        /* Decorative PCB pad notch between sections */
+        .pcb-notch {
+            position: absolute;
+            left: -8px;
+            width: 18px; height: 24px;
+            border: 2px solid var(--pcb);
+            background: var(--bg);
+            border-radius: 2px;
+            z-index: 11;
+        }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  SECTIONS — shared                                   ║
+           ╚══════════════════════════════════════════════════════╝ */
+        section {
+            position: relative;
+            min-height: 100vh;
+            padding: 80px 80px 100px var(--cnt-x);
+        }
+
+        .section-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 44px;
+            font-weight: 600;
+            color: var(--heading);
+            letter-spacing: -0.02em;
+            margin-bottom: 56px;
+        }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  BRANCH ITEMS — solid bullet + horizontal PCB trace  ║
+           ║  Used in Start and Contact sections                  ║
+           ╚══════════════════════════════════════════════════════╝ */
+        .branch-item {
+            position: relative;
+            margin-bottom: 44px;
+            padding-left: 2px;
+        }
+
+        /* Horizontal trace from track to bullet */
+        .branch-item::before {
+            content: '';
+            position: absolute;
+            left: -40px; top: 50%;
+            transform: translateY(-50%);
+            width: 28px; height: 2px;
+            background: var(--pcb);
+        }
+
+        /* Solid filled bullet */
+        .branch-item::after {
+            content: '';
+            position: absolute;
+            left: -14px; top: 50%;
+            transform: translateY(-50%);
+            width: 10px; height: 10px;
+            background: var(--pcb);
+            border-radius: 50%;
+        }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  START SECTION                                       ║
+           ╚══════════════════════════════════════════════════════╝ */
+        #start {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .start-greeting {
+            font-size: 17px;
+            font-weight: 500;
+            color: var(--body-clr);
+            opacity: 0.50;
+            margin-bottom: 6px;
+            letter-spacing: 0.02em;
+        }
+
+        /* The animated name */
+        #slot-name {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 58px;
+            font-weight: 600;
+            color: var(--heading);
+            letter-spacing: -0.025em;
+            line-height: 1.05;
+        }
+
+        .slot-char { display: inline-block; }
+
+        .start-intro {
+          
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--body-clr);
+            opacity: 0.70;
+            line-height: 1.65;
+            max-width: 480px;
+        }
+
+        .start-role {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--pcb);
+            letter-spacing: 0.01em;
+            margin-top: 8px;
+            opacity: 0.90;
+        }
+
+        .start-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .hero-btn {
+            display: inline-block;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            padding: 9px 22px;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .hero-btn--primary {
+            background: var(--pcb);
+            color: #0F172A;
+        }
+        .hero-btn--primary:hover {
+            background: #ffa94d;
+            box-shadow: 0 0 12px rgba(251,146,60,0.55);
+        }
+
+        .hero-btn--outline {
+            background: transparent;
+            color: var(--pcb);
+            border: 1.5px solid var(--pcb);
+        }
+        .hero-btn--outline:hover {
+            background: rgba(251,146,60,0.10);
+            box-shadow: 0 0 10px rgba(251,146,60,0.30);
+        }
+
+        /* ── Start Section Layout with Photo ── */
+#start {
+    display: block !important;   /* override the column flex from before */
+}
+
+#start .section-inner {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 48px;
+}
+
+#start .start-text {
+    flex: 1;
+    min-width: 0;               /* allows text to shrink properly */
+}
+
+#start .start-photo {
+    flex-shrink: 0;
+    width:  clamp(180px, 22vw, 300px);
+    height: clamp(180px, 22vw, 300px);
+    border-radius: 50%;         /* makes it a circle */
+    border: 2px solid var(--pcb);
+    box-shadow:
+        0 0 8px  var(--led-glow),
+        0 0 20px var(--led-glow),
+        0 0 45px rgba(251, 146, 60, 0.40);
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+}
+
+/* On narrow screens — stack vertically */
+@media (max-width: 200px) {
+    #start .section-inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    #start .start-photo {
+        width: 180px;
+        height: 180px;
+    }
+}
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  CODE SECTIONS — Lab & About                         ║
+           ║  Integrated into the page (no separate dark box).    ║
+           ║  Line numbers live in the LEFT gutter before PCB.    ║
+           ║  Code text lives in the RIGHT gutter after PCB.      ║
+           ╚══════════════════════════════════════════════════════╝ */
+
+        /* Remove side padding so code rows span full width */
+        #lab, #about { padding-left: 0; padding-right: 0; }
+
+        /* Heading inside code sections stays indented at --cnt-x */
+        #lab .section-title,
+        #about .section-title { padding-left: var(--cnt-x); }
+
+        /*  Three-column grid per row:
+            col 1  [var(--pcb-x)]  = line number (left gutter, before PCB)
+            col 2  [40px]          = empty bridge across the PCB line
+            col 3  [1fr]           = code text (right gutter, after PCB)    */
+        .code-row {
+            display: grid;
+            grid-template-columns: var(--pcb-x) 40px 1fr;
+            align-items: baseline;
+            line-height: 1.90;
+            min-height: 1.9em;
+        }
+
+        /* Line number — right-aligned, ends just before the PCB track */
+        .ln {
+            grid-column: 1;
+            text-align: right;
+            padding-right: 18px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            font-weight: 400;
+            color: var(--ln-clr);
+            user-select: none;
+        }
+
+        /* FIX: white-space changed from 'pre' to 'pre-wrap' so long lines
+           wrap instead of overflowing off-screen on smaller windows.
+           overflow-wrap ensures even unbreakable strings (long URLs, etc.)
+           will wrap rather than escape the container.                       */
+        .lc {
+            grid-column: 3;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--code-fg);
+            white-space: pre-wrap;       /* was: pre — now wraps long lines  */
+            overflow-wrap: break-word;   /* breaks truly unbreakable strings  */
+            word-break: break-word;      /* fallback for older browsers       */
+            padding-right: 40px;
+        }
+
+        /* ── Syntax colour classes — Tokyo Night ── */
+        .k  { color: var(--kw);   }
+        .s  { color: var(--str);  }
+        .n  { color: var(--num);  }
+        .f  { color: var(--fn);   }
+        .b  { color: var(--br);   }
+        .p  { color: var(--prop); }
+        .cm { color: var(--cm); font-style: italic; }
+        .t  { color: var(--code-fg); }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  RESUME SECTION — download card                     ║
+           ╚══════════════════════════════════════════════════════╝ */
+        #resume { padding-bottom: 100px; }
+
+        .resume-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            max-width: 560px;
+            padding: 22px 26px;
+            border: 1.5px solid rgba(251, 146, 60, 0.35);
+            border-radius: 10px;
+            background: rgba(251, 146, 60, 0.05);
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+        }
+
+        .resume-card:hover {
+            border-color: var(--pcb);
+            background: rgba(251, 146, 60, 0.08);
+            box-shadow: 0 0 22px rgba(251, 146, 60, 0.15);
+        }
+
+        .resume-card-icon {
+            flex-shrink: 0;
+            width: 52px; height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(251, 146, 60, 0.12);
+            color: var(--pcb);
+        }
+
+        .resume-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .resume-card-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--heading);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .resume-card-sub {
+            font-size: 12.5px;
+            color: var(--body-clr);
+            opacity: 0.55;
+            margin-top: 4px;
+        }
+
+        .resume-card-actions {
+            flex-shrink: 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        @media (max-width: 640px) {
+            .resume-card {
+                flex-wrap: wrap;
+            }
+            .resume-card-actions {
+                width: 100%;
+                margin-top: 8px;
+            }
+            .resume-card-actions .hero-btn {
+                flex: 1;
+                text-align: center;
+            }
+        }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  CONTACT SECTION                                     ║
+           ╚══════════════════════════════════════════════════════╝ */
+
+        /* FIX: label text is now full white (was 45% opacity grey) */
+        .contact-label {
+            font-size: 11.5px;
+            font-weight: 500;
+            color: #ffffff;              /* was: var(--body-clr) at 0.45 opacity */
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .contact-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--heading);
+        }
+
+        .contact-value a {
+            color: var(--nav-text);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .contact-value a:hover { color: var(--nav-hover); }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  SCROLLBAR                                           ║
+           ╚══════════════════════════════════════════════════════╝ */
+        ::-webkit-scrollbar       { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--pcb); border-radius: 3px; }
+
+
+        /* ╔══════════════════════════════════════════════════════╗
+           ║  RESPONSIVE                                          ║
+           ╚══════════════════════════════════════════════════════╝ */
+        @media (max-width: 768px) {
+            :root { --pcb-x: 70px; --cnt-x: 110px; }
+            .section-title { font-size: 30px; }
+            #slot-name { font-size: 34px; }
+            nav { gap: 20px; }
+            .nav-link { font-size: 12px; }
+            .page-wrapper { padding-right: 20px; }
+            .lc { font-size: 10.5px; }
+        }
+
+    </style>
+</head>
+<body>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CUSTOM CURSOR DOT
+═══════════════════════════════════════════════════════════ -->
+<div id="cursor"></div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     NAVIGATION BAR
+═══════════════════════════════════════════════════════════ -->
+<nav id="navbar">
+    <a href="#start"   class="nav-link" data-sec="start"  >Start/&gt;</a>
+    <a href="#lab"     class="nav-link" data-sec="lab"    >Lab/&gt;</a>
+    <a href="#about"   class="nav-link" data-sec="about"  >About/&gt;</a>
+    <a href="#resume"  class="nav-link" data-sec="resume" >Resume/&gt;</a>
+    <a href="#contact" class="nav-link" data-sec="contact">Contact/&gt;</a>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════════════════════════ -->
+<main>
+<div class="page-wrapper" id="page-wrapper">
+
+    <!-- PCB vertical track — LED dots & notches injected by JS -->
+    <div id="pcb-track"></div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 1 — START
+    ══════════════════════════════════════════════════════ -->
+    <section id="start">
+    <h1 class="section-title">Start/&gt;</h1>
+
+    <div class="section-inner">
+
+        <div class="start-text">
+            <div class="branch-item">
+                <p class="start-greeting">Hello, I'm</p>
+                <div id="slot-name">Ch. Neha Singha</div>
+                <p class="start-role">B.Tech Electronics &amp; Communication Engineering Student | Embedded Systems &amp; IoT Enthusiast</p>
+            </div>
+            <div class="branch-item">
+                <p class="start-intro">
+                    I build intelligent embedded systems using ESP32, STM32, Arduino, and IoT technologies.
+                    My interests include real-time systems, wireless communication, automation, and assistive
+                    technologies that solve real-world problems.
+                </p>
+            </div>
+            <div class="branch-item start-btns">
+                <a href="#lab"     class="hero-btn hero-btn--primary">View Projects</a>
+                <a href="#resume"  class="hero-btn hero-btn--outline">Download Resume</a>
+                <a href="#contact" class="hero-btn hero-btn--outline">Contact Me</a>
+            </div>
+        </div>
+
+        <img
+            class="start-photo"
+            src="myphoto.jpeg"
+            alt="Ch Neha Singha"
+        />
+
+    </div>
+</section>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 2 — LAB
+         Code-editor style, no dark box, same page background.
+         Line numbers in left gutter, code in right gutter.
+    ══════════════════════════════════════════════════════ -->
+    <section id="lab">
+        <h2 class="section-title">Lab/&gt;</h2>
+        <div id="lab-code"></div>
+    </section>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 3 — ABOUT
+         Same integrated code-editor layout as Lab.
+    ══════════════════════════════════════════════════════ -->
+    <section id="about">
+        <h2 class="section-title">About/&gt;</h2>
+        <div id="about-code"></div>
+    </section>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 3.5 — RESUME
+         Recruiter-friendly download card with PDF preview link.
+    ══════════════════════════════════════════════════════ -->
+    <section id="resume">
+        <h2 class="section-title">Resume/&gt;</h2>
+
+        <div class="branch-item">
+            <p class="start-intro" style="margin-bottom: 28px;">
+                Recruiters and hiring managers — grab a copy of my full resume below as a
+                PDF, including skills, projects, internship experience, and education.
+            </p>
+        </div>
+
+        <div class="branch-item">
+            <div class="resume-card">
+                <div class="resume-card-icon">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                        <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                        <path d="M9 13h6M9 17h6M9 9h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="resume-card-info">
+                    <div class="resume-card-title">Ch_Neha_Singha_Resume.pdf</div>
+                    <div class="resume-card-sub">Updated June 2026 · PDF</div>
+                </div>
+                <div class="resume-card-actions">
+                    <a href="resume.pdf" target="_blank" rel="noopener" class="hero-btn hero-btn--outline">View</a>
+                    <a href="resume.pdf" download="Ch_Neha_Singha_Resume.pdf" class="hero-btn hero-btn--primary">Download</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 4 — CONTACT
+         Branch-item layout with solid-bullet PCB traces.
+    ══════════════════════════════════════════════════════ -->
+    <section id="contact">
+        <h2 class="section-title">Contact/&gt;</h2>
+
+        <div class="branch-item">
+            <div class="contact-label">phone no.</div>
+            <div class="contact-value">
+                <a href="tel:+918099106986">+91 8099106986</a>
+            </div>
+        </div>
+
+        <div class="branch-item">
+            <div class="contact-label">email</div>
+            <div class="contact-value">
+                <a href="mailto:chnehasingha@gmail.com">chnehasingha@gmail.com</a>
+            </div>
+        </div>
+
+        <div class="branch-item">
+            <div class="contact-label">linkedin</div>
+            <div class="contact-value">
+                <a href="https://www.linkedin.com/in/ch-neha-singha?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app" target="_blank">
+                    linkedin.com/in/ch-neha-singha
+                </a>
+            </div>
+        </div>
+    </section>
+
+</div><!-- /.page-wrapper -->
+</main>
+
+
+<script>
+
+/* ══════════════════════════════════════════════════════════════
+   CUSTOM CURSOR
+   Follows the mouse. Spawns an expanding ripple ring on click.
+══════════════════════════════════════════════════════════════ */
+const cursor = document.getElementById('cursor');
+
+document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top  = e.clientY + 'px';
+});
+
+document.addEventListener('click', e => {
+    const r = document.createElement('div');
+    r.className = 'cursor-ripple';
+    r.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;width:10px;height:10px;`;
+    document.body.appendChild(r);
+    setTimeout(() => r.remove(), 750);
+});
+
+
+/* ══════════════════════════════════════════════════════════════
+   CODE RENDERER
+   Takes a container ID and an array of HTML-with-spans strings.
+   Builds zero-padded line-number + code-content rows inside it.
+   Adding/removing strings from the array auto-renumbers lines.
+══════════════════════════════════════════════════════════════ */
+function renderCode(containerId, lines) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+
+    el.innerHTML = lines
+        .map((line, i) =>
+            `<div class="code-row">` +
+                `<span class="ln">${String(i + 1).padStart(2, '0')}</span>` +
+                `<span></span>` +
+                `<span class="lc">${line === '' ? ' ' : line}</span>` +
+            `</div>`
+        )
+        .join('');
+}
+
+
+/* ═════════════════════════════════════════════════════════════
+   LAB CONTENT — written as a JS const object
+   Syntax classes:  k=keyword  f=function  s=string  n=number
+                    b=bracket  p=property  cm=comment  t=plain
+═════════════════════════════════════════════════════════════ */
+
+renderCode('lab-code', [
+
+`<span class="k">const</span> <span class="f">lab</span> <span class="t">= {</span>`,
+``,
+
+`  <span class="cm">// ── Hardware Projects ─────────────────────────────</span>`,
+`  <span class="p">hardware</span><span class="t">: [</span>`,
+
+`    <span class="b">{</span>`,
+`      <span class="p">title</span>    <span class="t">: </span><span class="s">"Sign-to-Speech Communication Device (ESP32)"</span><span class="t">,</span>`,
+`      <span class="p">date</span>     <span class="t">: </span><span class="s">"May 2026"</span><span class="t">,</span>`,
+`      <span class="p">details</span>  <span class="t">: [</span>`,
+`                  <span class="s">"Wearable communication aid using ESP32 and MPU6050"</span><span class="t">,</span>`,
+`                  <span class="s">"Recognised 10+ hand gestures with ~90% accuracy"</span><span class="t">,</span>`,
+`                  <span class="s">"Converts gestures to speech within 1 second"</span>`,
+`                <span class="t">],</span>`,
+`      <span class="p">tech</span>     <span class="t">: [</span><span class="s">"ESP32"</span><span class="t">, </span><span class="s">"MPU6050"</span><span class="t">, </span><span class="s">"Embedded C"</span><span class="t">, </span><span class="s">"IoT"</span><span class="t">]</span>`,
+`    <span class="b">}</span><span class="t">,</span>`,
+
+`    <span class="b">{</span>`,
+`      <span class="p">title</span>    <span class="t">: </span><span class="s">"Smart Safety Pendant"</span><span class="t">,</span>`,
+`      <span class="p">date</span>     <span class="t">: </span><span class="s">"Apr 2026"</span><span class="t">,</span>`,
+`      <span class="p">details</span>  <span class="t">: [</span>`,
+`                  <span class="s">"Wearable SOS alert system"</span><span class="t">,</span>`,
+`                  <span class="s">"Gesture-based activation via tap and shake detection"</span><span class="t">,</span>`,
+`                  <span class="s">"Sends location-based emergency SMS using GSM"</span>`,
+`                <span class="t">],</span>`,
+`      <span class="p">tech</span>     <span class="t">: [</span><span class="s">"Arduino Uno"</span><span class="t">, </span><span class="s">"GSM Module"</span><span class="t">, </span><span class="s">"Embedded C"</span><span class="t">]</span>`,
+`    <span class="b">}</span><span class="t">,</span>`,
+
+`    <span class="b">{</span>`,
+`      <span class="p">title</span>    <span class="t">: </span><span class="s">"Smart Gesture-Controlled Robotic Car"</span><span class="t">,</span>`,
+`      <span class="p">date</span>     <span class="t">: </span><span class="s">"Dec 2025"</span><span class="t">,</span>`,
+`      <span class="p">details</span>  <span class="t">: [</span>`,
+`                  <span class="s">"Controlled vehicle using hand gestures"</span><span class="t">,</span>`,
+`                  <span class="s">"Wireless communication via Blynk and ESP32"</span><span class="t">,</span>`,
+`                  <span class="s">"Response latency under 200 ms"</span>`,
+`                <span class="t">],</span>`,
+`      <span class="p">tech</span>     <span class="t">: [</span><span class="s">"ESP32"</span><span class="t">, </span><span class="s">"Embedded C"</span><span class="t">, </span><span class="s">"Blynk"</span><span class="t">]</span>`,
+`    <span class="b">}</span><span class="t">,</span>`,
+
+`    <span class="b">{</span>`,
+`      <span class="p">title</span>    <span class="t">: </span><span class="s">"Smart Health Monitoring System"</span><span class="t">,</span>`,
+`      <span class="p">date</span>     <span class="t">: </span><span class="s">"May 2025"</span><span class="t">,</span>`,
+`      <span class="p">details</span>  <span class="t">: [</span>`,
+`                  <span class="s">"Monitors heart rate and temperature in real time"</span><span class="t">,</span>`,
+`                  <span class="s">"Cloud-based data visualisation"</span><span class="t">,</span>`,
+`                  <span class="s">"Real-time alerts through Blynk"</span>`,
+`                <span class="t">],</span>`,
+`      <span class="p">tech</span>     <span class="t">: [</span><span class="s">"ESP32"</span><span class="t">, </span><span class="s">"IoT"</span><span class="t">, </span><span class="s">"Blynk"</span><span class="t">]</span>`,
+`    <span class="b">}</span>`,
+
+`  <span class="t">]</span>`,
+``,
+`<span class="t">};</span>`,
+``,
+`<span class="k">export default</span> <span class="t">lab;</span>`
+
+]);
+
+/* ══════════════════════════════════════════════════════════════
+   ABOUT CONTENT — written as a JS class
+══════════════════════════════════════════════════════════════ */
+renderCode('about-code', [
+
+`<span class="k">class</span> <span class="f">About</span> <span class="b">{</span>`,
+``,
+
+`  <span class="cm">// ── Personal Information ─────────────────────────────</span>`,
+`  <span class="f">personalInfo</span><span class="b">()</span> <span class="b">{</span>`,
+`    <span class="k">return</span> <span class="b">{</span>`,
+`      <span class="p">name</span> <span class="t">: </span><span class="s">"Ch. Neha Singha"</span><span class="t">,</span>`,
+`      <span class="p">role</span> <span class="t">: </span><span class="s">"B.Tech ECE Student | Embedded Systems &amp; IoT Enthusiast"</span><span class="t">,</span>`,
+`      <span class="p">bio</span>  <span class="t">: </span><span class="s">"ECE student at LPU with experience in ESP32, STM32, Arduino, Embedded C, Python, MATLAB, and Power BI. Built solutions in gesture recognition, health monitoring, emergency alert systems, and wireless communication."</span>`,
+`    <span class="b">};</span>`,
+`  <span class="b">}</span>`,
+``,
+
+`  <span class="cm">// ── Skills ───────────────────────────────────────────</span>`,
+`  <span class="f">skills</span><span class="b">()</span> <span class="b">{</span>`,
+`    <span class="k">return</span> <span class="b">{</span>`,
+`      <span class="p">programming</span>    <span class="t">: [</span><span class="s">"C"</span><span class="t">, </span><span class="s">"Embedded C"</span><span class="t">, </span><span class="s">"Python"</span><span class="t">, </span><span class="s">"MicroPython"</span><span class="t">, </span><span class="s">"JavaScript"</span><span class="t">, </span><span class="s">"HTML"</span><span class="t">, </span><span class="s">"CSS"</span><span class="t">],</span>`,
+`      <span class="p">microcontrollers</span><span class="t">: [</span><span class="s">"ESP32"</span><span class="t">, </span><span class="s">"STM32"</span><span class="t">, </span><span class="s">"Arduino Uno"</span><span class="t">, </span><span class="s">"8051 Microcontroller"</span><span class="t">],</span>`,
+`      <span class="p">tools</span>          <span class="t">: [</span><span class="s">"Keil uVision"</span><span class="t">, </span><span class="s">"Proteus"</span><span class="t">, </span><span class="s">"Cadence NCSim"</span><span class="t">, </span><span class="s">"Wokwi"</span><span class="t">, </span><span class="s">"Arduino IDE"</span><span class="t">, </span><span class="s">"MATLAB"</span><span class="t">, </span><span class="s">"AutoCAD"</span><span class="t">, </span><span class="s">"MySQL"</span><span class="t">, </span><span class="s">"Power BI"</span><span class="t">, </span><span class="s">"Microsoft Excel"</span><span class="t">],</span>`,
+`      <span class="p">softSkills</span>     <span class="t">: [</span><span class="s">"Problem Solving"</span><span class="t">, </span><span class="s">"Strategic Thinking"</span><span class="t">, </span><span class="s">"Team Collaboration"</span><span class="t">, </span><span class="s">"Analytical Skills"</span><span class="t">, </span><span class="s">"Time Management"</span><span class="t">]</span>`,
+`    <span class="b">};</span>`,
+`  <span class="b">}</span>`,
+``,
+
+`  <span class="cm">// ── Internship Experience ────────────────────────────</span>`,
+`  <span class="f">experience</span><span class="b">()</span> <span class="b">{</span>`,
+`    <span class="k">return</span> <span class="b">{</span>`,
+`      <span class="p">role</span>     <span class="t">: </span><span class="s">"Data Analyst Intern"</span><span class="t">,</span>`,
+`      <span class="p">company</span>  <span class="t">: </span><span class="s">"Gurudev Projects Construction Pvt. Ltd."</span><span class="t">,</span>`,
+`      <span class="p">duration</span> <span class="t">: </span><span class="s">"June 2025 – July 2025"</span><span class="t">,</span>`,
+`      <span class="p">highlights</span> <span class="t">: [</span>`,
+`        <span class="s">"Cleaned and structured construction project datasets using Excel and Power BI"</span><span class="t">,</span>`,
+`        <span class="s">"Created weekly monitoring reports — improved reporting turnaround by ~30%"</span><span class="t">,</span>`,
+`        <span class="s">"Improved documentation workflows — reduced record retrieval time by ~25%"</span><span class="t">,</span>`,
+`        <span class="s">"Assisted management through data-driven reporting and documentation"</span>`,
+`      <span class="t">]</span>`,
+`    <span class="b">};</span>`,
+`  <span class="b">}</span>`,
+``,
+
+`  <span class="cm">// ── Certifications ───────────────────────────────────</span>`,
+`  <span class="f">certifications</span><span class="b">()</span> <span class="b">{</span>`,
+`    <span class="k">return</span> <span class="t">[</span>`,
+`      <span class="s">"Embedded Systems with AVR ATMEGA32 Microcontroller (Udemy)"</span><span class="t">,</span>`,
+`      <span class="s">"Power BI (Udemy)"</span><span class="t">,</span>`,
+`      <span class="s">"Programming with JavaScript (Coursera)"</span><span class="t">,</span>`,
+`      <span class="s">"Version Control (Coursera)"</span><span class="t">,</span>`,
+`      <span class="s">"Advanced React (Coursera)"</span><span class="t">,</span>`,
+`      <span class="s">"Introduction to Front-End Development (Coursera)"</span><span class="t">,</span>`,
+`      <span class="s">"Database Management System (NPTEL)"</span>`,
+`    <span class="t">];</span>`,
+`  <span class="b">}</span>`,
+``,
+
+`  <span class="cm">// ── Education ────────────────────────────────────────</span>`,
+`  <span class="f">education</span><span class="b">()</span> <span class="b">{</span>`,
+`    <span class="k">return</span> <span class="b">{</span>`,
+`      <span class="p">bachelors</span> <span class="t">: {</span>`,
+`        <span class="p">university</span> <span class="t">: </span><span class="s">"Lovely Professional University"</span><span class="t">,</span>`,
+`        <span class="p">degree</span>     <span class="t">: </span><span class="s">"B.Tech — Electronics and Communication Engineering"</span><span class="t">,</span>`,
+`        <span class="p">duration</span>   <span class="t">: </span><span class="s">"2023 – Present"</span><span class="t">,</span>`,
+`        <span class="p">cgpa</span>       <span class="t">: </span><span class="n">7.32</span>`,
+`      <span class="t">},</span>`,
+``,
+`      <span class="p">higherSecondary</span> <span class="t">: {</span>`,
+`        <span class="p">school</span>     <span class="t">: </span><span class="s">"Kendriya Vidyalaya Narengi"</span><span class="t">,</span>`,
+`        <span class="p">stream</span>     <span class="t">: </span><span class="s">"Intermediate — PCMB"</span><span class="t">,</span>`,
+`        <span class="p">percentage</span> <span class="t">: </span><span class="s">"87.4%"</span>`,
+`      <span class="t">},</span>`,
+``,
+`      <span class="p">matriculation</span> <span class="t">: {</span>`,
+`        <span class="p">school</span>     <span class="t">: </span><span class="s">"Kendriya Vidyalaya Narengi"</span><span class="t">,</span>`,
+`        <span class="p">percentage</span> <span class="t">: </span><span class="s">"93.6%"</span>`,
+`      <span class="t">}</span>`,
+`    <span class="b">};</span>`,
+`  <span class="b">}</span>`,
+``,
+
+`<span class="b">}</span>`,
+``,
+`<span class="k">export default new</span> <span class="f">About</span><span class="t">();</span>`
+
+]);
+
+
+/* ══════════════════════════════════════════════════════════════
+   PCB LED DOTS & NOTCH PADS
+   LED dots are absolutely positioned children of #pcb-track.
+   Their top is computed after the full layout renders.
+══════════════════════════════════════════════════════════════ */
+const SECTION_IDS = ['start', 'lab', 'about', 'resume', 'contact'];
+const pcbTrack    = document.getElementById('pcb-track');
+const ledMap      = {};
+
+/* Walk offsetParent chain to get top of el relative to ancestor */
+function offsetTopRelTo(el, ancestor) {
+    let top = 0, cur = el;
+    while (cur && cur !== ancestor) {
+        top += cur.offsetTop;
+        cur  = cur.offsetParent;
+    }
+    return top;
+}
+
+/* Create / reposition hollow LED dots at each section heading */
+function placeLEDs() {
+    const wrapper = document.getElementById('page-wrapper');
+    SECTION_IDS.forEach(id => {
+        const sec  = document.getElementById(id);
+        const head = sec && sec.querySelector('.section-title');
+        if (!sec || !head) return;
+
+        const yTop    = offsetTopRelTo(head, wrapper);
+        const yCentre = yTop + head.offsetHeight / 2;
+
+        if (!ledMap[id]) {
+            const dot       = document.createElement('div');
+            dot.className   = 'led-dot';
+            dot.dataset.sec = id;
+            pcbTrack.appendChild(dot);
+            ledMap[id] = dot;
+        }
+
+        ledMap[id].style.top = (yCentre - 7) + 'px';
+    });
+}
+
+/* Create decorative pad notches at midpoints between sections */
+function placeNotches() {
+    pcbTrack.querySelectorAll('.pcb-notch').forEach(n => n.remove());
+    const wrapper = document.getElementById('page-wrapper');
+    const secs    = SECTION_IDS.map(id => document.getElementById(id)).filter(Boolean);
+
+    for (let i = 0; i < secs.length - 1; i++) {
+        const yBottom = offsetTopRelTo(secs[i],     wrapper) + secs[i].offsetHeight;
+        const yTopEl  = offsetTopRelTo(secs[i + 1], wrapper);
+        const yMid    = (yBottom + yTopEl) / 2;
+
+        const notch     = document.createElement('div');
+        notch.className = 'pcb-notch';
+        notch.style.top = (yMid - 12) + 'px';
+        pcbTrack.appendChild(notch);
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ACTIVE SECTION TRACKING — scroll-based
+   On every scroll frame: find the section whose top edge is at
+   or above 30% down the viewport AND is furthest down the page.
+   That section is "active" → bold white nav + LED glow.
+   Scroll-based (not IntersectionObserver) so no section is skipped.
+══════════════════════════════════════════════════════════════ */
+const navLinks = document.querySelectorAll('.nav-link');
+let   current  = '';
+
+function setActive(id) {
+    if (id === current) return;
+    current = id;
+    navLinks.forEach(l => l.classList.toggle('active', l.dataset.sec === id));
+    Object.entries(ledMap).forEach(([sec, dot]) =>
+        dot.classList.toggle('lit', sec === id)
+    );
+}
+
+function updateActive() {
+    const trigger = window.scrollY + window.innerHeight * 0.30;
+    let bestId = SECTION_IDS[0], bestTop = -Infinity;
+
+    SECTION_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const top = el.getBoundingClientRect().top + window.scrollY;
+        if (top <= trigger && top > bestTop) { bestTop = top; bestId = id; }
+    });
+
+    setActive(bestId);
+}
+
+/* Throttle scroll updates with requestAnimationFrame */
+let rafPending = false;
+window.addEventListener('scroll', () => {
+    if (!rafPending) {
+        rafPending = true;
+        requestAnimationFrame(() => { updateActive(); rafPending = false; });
+    }
+}, { passive: true });
+
+
+/* ══════════════════════════════════════════════════════════════
+   SLOT MACHINE NAME ANIMATION
+   Characters cycle through random glyphs and settle left-to-right.
+   Change 'Your Name Here' below to your real name.
+══════════════════════════════════════════════════════════════ */
+function slotMachine(element, finalText, totalDuration = 1800) {
+    const glyphs  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&!?';
+    const letters = [...finalText];
+    const rand    = () => glyphs[Math.floor(Math.random() * glyphs.length)];
+
+    element.innerHTML = '';
+
+    const spans = letters.map(ch => {
+        const s     = document.createElement('span');
+        s.className = 'slot-char';
+        s.textContent = ch === ' ' ? '\u00A0' : rand();
+        element.appendChild(s);
+        return s;
+    });
+
+    letters.forEach((ch, i) => {
+        if (ch === ' ') { spans[i].textContent = '\u00A0'; return; }
+
+        const startDelay  = i * totalDuration * 0.04;
+        const shuffleTime = totalDuration * 0.50 + i * 30;
+        let elapsed = 0;
+
+        setTimeout(() => {
+            const iv = setInterval(() => {
+                spans[i].textContent = rand();
+                elapsed += 45;
+                if (elapsed >= shuffleTime) {
+                    clearInterval(iv);
+                    spans[i].textContent = ch;
+                }
+            }, 45);
+        }, startDelay);
+    });
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   INIT — runs after full page layout is complete
+══════════════════════════════════════════════════════════════ */
+window.addEventListener('load', () => {
+
+    /* Build PCB LED dots and notch pads */
+    placeLEDs();
+    placeNotches();
+
+    /* Run first scroll check — sets Start as active on load */
+    updateActive();
+
+    /* ── CHANGE 'Your Name Here' to your real name ── */
+    setTimeout(() => {
+        slotMachine(document.getElementById('slot-name'), 'Ch. Neha Singha', 1800);
+    }, 400);
+
+});
+
+/* Recompute dot/notch positions if window is resized */
+window.addEventListener('resize', () => {
+    placeLEDs();
+    placeNotches();
+});
+
+</script>
+</body>
+</html>
